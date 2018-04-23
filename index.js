@@ -1,6 +1,10 @@
 const express = require("express");
 const app = express();
 
+app.get('/', function (req, res) {
+  res.send('Web interface goes here');
+});
+
 app.get('/:shortUrl', function (req, res) {
   console.log("Should return long URL");
   res.send(req.params);
