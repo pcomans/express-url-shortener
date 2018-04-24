@@ -24,7 +24,7 @@ app.get("/:shortUrl", function(req, res) {
     }
 
     client.query(
-      "SELECT longUrl FROM urls WHERE key = $1",
+      "SELECT longurl FROM urls WHERE key = $1",
       [shortUrl],
       function(err, results) {
         if (err) {
@@ -35,8 +35,7 @@ app.get("/:shortUrl", function(req, res) {
         if (results.rowCount == 0) {
           res.send("NOT FOUND");
         } else {
-          console.log("Success!");
-          let longUrl = results.rows[0].longUrl;
+          let longUrl = results.rows[0].longurl;
           finish(longUrl);
         }
       }
@@ -64,7 +63,7 @@ app.post("/s/:longUrl", function(req, res) {
     }
 
     client.query(
-      "INSERT INTO urls (key, longUrl) VALUES ($1, $2);",
+      "INSERT INTO urls (key, longurl) VALUES ($1, $2);",
       [key, req.params.longUrl],
       function(err, results) {
         if (err) {

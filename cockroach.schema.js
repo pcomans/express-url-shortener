@@ -34,7 +34,7 @@ pool.connect(function (err, client, done) {
   async.waterfall([
     function (next) {
       // Create the "urls" table.
-      client.query('CREATE TABLE IF NOT EXISTS urls (key STRING PRIMARY KEY, longUrl STRING);', next);
+      client.query('CREATE TABLE IF NOT EXISTS urls (key STRING PRIMARY KEY, longurl STRING);', next);
     },
   ],
   function (err, results) {
