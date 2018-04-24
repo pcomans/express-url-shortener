@@ -4,34 +4,80 @@ const base32 = require("./base32");
 const express = require("express");
 const app = express();
 
-const cache = new Map();
-
 app.get("/", function(req, res) {
   res.send("Web interface goes here");
 });
 
 app.get("/:shortUrl", function(req, res) {
   let shortUrl = req.params.shortUrl.trim();
-  if (!cache.has(shortUrl)) {
-    res.send("NOT FOUND");
-  } else {
-    res.redirect(cache.get(shortUrl));
-  }
+
+  pool.connect(function(err, client, done) {
+    // Closes communication with the database and exits.
+    var finish = function(longUrl) {
+      res.redirect(longUrl);
+      done();
+    };
+
+    if (err) {
+      console.error("could not connect to cockroachdb", err);
+      finish();
+    }
+
+    client.query(
+      "SELECT longUrl FROM urls WHERE key = $1",
+      [shortUrl],
+      function(err, results) {
+        if (err) {
+          console.error("error selecting from urls", err);
+          res.send("NOT FOUND");
+        }
+        console.log(results);
+        if (results.rowCount == 0) {
+          res.send("NOT FOUND");
+        } else {
+          console.log("Success!");
+          let longUrl = results.rows[0].longUrl;
+          finish(longUrl);
+        }
+      }
+    );
+  });
 });
 
-app.post(
-  "/s/:longUrl",
-  function(req, res) {
-    let key = base32.get8();
-    console.log(`The key is: ${key}`);
-    cache.set(key, req.params.longUrl);
+app.post("/s/:longUrl", function(req, res) {
+  let key = base32.get8();
+  console.log(`The key is: ${key}`);
 
-    res.send({
-      longUrl: req.params.longUrl,
-      shortUrl: key,
-    });
-  }
-);
+  pool.connect(function(err, client, done) {
+    // Closes communication with the database and exits.
+    var finish = function() {
+      res.send({
+        longUrl: req.params.longUrl,
+        shortUrl: key
+      });
+      done();
+    };
+
+    if (err) {
+      console.error("could not connect to cockroachdb", err);
+      finish();
+    }
+
+    client.query(
+      "INSERT INTO urls (key, longUrl) VALUES ($1, $2);",
+      [key, req.params.longUrl],
+      function(err, results) {
+        if (err) {
+          console.error("error inserting into urls", err);
+          res.send({
+            err: err
+          });
+        }
+        finish();
+      }
+    );
+  });
+});
 
 const config = {
   user: "maxroach",
