@@ -1,43 +1,8 @@
 const async = require("async");
 const pg = require("pg");
+const base32 = require("./base32");
 const express = require("express");
 const app = express();
-
-// Crockford's Base32
-const base32Chars = [
-  "0",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "a",
-  "b",
-  "c",
-  "d",
-  "e",
-  "f",
-  "g",
-  "h",
-  "j",
-  "k",
-  "m",
-  "n",
-  "p",
-  "q",
-  "r",
-  "s",
-  "t",
-  "v",
-  "w",
-  "x",
-  "y",
-  "z"
-];
 
 app.get("/", function(req, res) {
   res.send("Web interface goes here");
@@ -52,11 +17,8 @@ app.post(
   "/s/:longUrl",
   function(req, res, next) {
     console.log(`Should shorten long URL ${req.params.longUrl}`);
-    let key = "";
-    for (let i = 0; i < 7; i++) {
-      let idx = Math.floor(Math.random() * 32.0);
-      key += base32Chars[idx];
-    }
+    
+    let key= base32.get8();
     console.log(`The key is: ${key}`);
 
     next();
